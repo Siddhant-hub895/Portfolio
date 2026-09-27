@@ -1,3 +1,4 @@
+import { loadEnv } from "vite";
 import { clientIp, rateLimit, sendContactEmail, validateContact } from "./contactCore.js";
 
 function readBody(req) {
@@ -27,6 +28,11 @@ export function contactDevApi() {
   return {
     name: "contact-dev-api",
     configureServer(server) {
+      const env = loadEnv(server.config.mode, server.config.envDir || process.cwd(), "");
+      for (const key of ["RESEND_API_KEY", "CONTACT_EMAIL", "FROM_EMAIL"]) {
+        if (!process.env[key] && env[key]) process.env[key] = env[key];
+      }
+
       server.middlewares.use(async (req, res, next) => {
         const path = req.url?.split("?")[0];
         if (path !== "/api/contact") return next();
